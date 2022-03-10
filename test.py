@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import requests
 import json
+import openpyxl
 
 def get_standard_token():
     Header = {
@@ -136,6 +137,17 @@ def find_times_for_team(liveToken, standardToken, playerList):
     finalData = insert_names(finalData, playerList)
     return finalData
 
+def convert_milliseconds(input):
+    milliseconds = int((int(input)%1000))
+    seconds = int((int(input)/1000)%60)
+    minutes = int((int(input)/(1000*60))%60)
+
+    seconds = '0'+str(seconds) if seconds < 10 else str(seconds)
+    minutes = '0'+str(minutes) if minutes < 10 else str(minutes)
+
+    returnstring = f'{minutes}:{seconds}.{milliseconds}' if int(minutes) > 0 else F'{seconds}.{milliseconds}'
+    return returnstring
+
 teamList = [
     {
         "team": "italy",
@@ -156,6 +168,15 @@ teamList = [
 liveToken = get_live_token()
 standardToken = get_standard_token()
 
+writer = pd.ExcelWriter('TeamTime.xlsx', engine = 'xlsxwriter')
+
+
+
 for team in teamList:
     finalData = find_times_for_team(liveToken, standardToken, team['players'])
+    finalData['time'].map()
+    finalData.to_excel(writer, sheet_name=team['team'], index=False)
+    #finalData.to_excel('TeamTime.xlsx', sheet_name=team['team'])
     print(finalData)
+writer.save()
+writer.close()
