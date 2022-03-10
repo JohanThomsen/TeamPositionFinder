@@ -1,5 +1,3 @@
-from email.header import Header
-from turtle import position
 import pandas as pd
 import numpy as np
 import requests
@@ -38,8 +36,8 @@ def getMapString(mapInfo):
 
 def getPlayerString(playerList):
     string = ''
-    for player in playerList:
-        string += list(player.keys())[0]
+    for player in playerList.keys():
+        string += player
         string += '%2c'
     string = string[:-3]
     return string
@@ -58,7 +56,6 @@ def get_times(playerList, mapInfo, token):
     return jsonResponse
 
 def get_position_from_time(token, data):
-    #print(token)
     positions = []
     Header = {
     'Accept': 'application/json',
@@ -96,33 +93,69 @@ def convert_to_final_form(data: pd.DataFrame, outdic):
             outdic[playernumber+'time'] = []
         outdic[playernumber+'position'].append(row['position'])
         outdic[playernumber+'time'].append(row['time'])
-    print(outdic)
     return outdic
+
+def insert_names(data: pd.DataFrame, playerList):
+    names = list(playerList.values())
+    for i in range(0, len(names)):
+        data.rename(columns={f"{str(i+1)}position":f"{names[i]} position"}, inplace=True)
+        data.rename(columns={f"{str(i+1)}time":f"{names[i]} time"}, inplace=True)
+    return data
+
+
+def get_map_info():
+    mapFrame = pd.read_csv('mapIDs.csv')
+    mapFrame = mapFrame.set_axis(['mapNumber', 'mapId', 'mapUid'], axis=1)
+    mapInfo = mapFrame.to_dict()
+    return mapInfo
+
+def get_times_and_uid( standardToken, mapInfo, playerList):
+    times = get_times(playerList, mapInfo, standardToken)
+    df = pd.DataFrame(times)
+    df['mapUid'], df['mapNumber'] = replace_map_id_with_uid(df['mapId'], mapInfo)
+
+    df['time'] = [d.get('time') for d in df['recordScore']]
+    data = df[['accountId', 'mapId', 'mapUid', 'time', 'mapNumber']]
+    return data
+
+def get_positions(liveToken, data):
+    outdic = {
+    'mapNumber': []
+    }
+    data['position'] = get_position_from_time(liveToken, data)
+    data = data.sort_values(['accountId', 'mapNumber'])
+    finalData = data[['accountId','mapNumber', 'position', 'time']]
+    finalData = finalData.reset_index()
+    finalData = pd.DataFrame(convert_to_final_form(finalData, outdic))
+    return finalData
+
+def find_times_for_team(liveToken, standardToken, playerList):
+    mapInfo = get_map_info()
+    data = get_times_and_uid(standardToken, mapInfo, playerList)
+    finalData = get_positions(liveToken, data)
+    finalData = insert_names(finalData, playerList)
+    return finalData
+
+teamList = [
+    {
+        "team": "italy",
+        "players" : {
+            "3288d084-1aab-41af-99e6-f6e2367dcfc8" : "johanclanTM",
+            "55a6453a-8fd8-47da-831b-d4c90ecc7506" : "DexteR.771"
+        }
+    },
+    {
+        "team": "denmark",
+        "players" : {
+            "794a286c-44d9-4276-83ce-431cba7bab74" : "Marius",
+            "fb678553-f730-442a-a035-dfc50f4a5b7b" : "Mime"
+        }
+    }
+]
 
 liveToken = get_live_token()
 standardToken = get_standard_token()
 
-mapFrame = pd.read_csv('mapIDs.csv')
-mapFrame = mapFrame.set_axis(['mapNumber', 'mapId', 'mapUid'], axis=1)
-playerList = [{'3288d084-1aab-41af-99e6-f6e2367dcfc8' : 'johanclanTM'}, {'55a6453a-8fd8-47da-831b-d4c90ecc7506' : 'DexteR.771'}]
-mapInfo = mapFrame.to_dict()
-
-times = get_times(playerList, mapInfo, standardToken)
-df = pd.DataFrame(times)
-print(df)
-df['mapUid'], df['mapNumber'] = replace_map_id_with_uid(df['mapId'], mapInfo)
-
-df['time'] = [d.get('time') for d in df['recordScore']]
-data = df[['accountId', 'mapId', 'mapUid', 'time', 'mapNumber']]
-
-outdic = {
-    'mapNumber': []
-}
-
-
-data['position'] = get_position_from_time(liveToken, data)
-data = data.sort_values(['accountId', 'mapNumber'])
-finalData = data[['accountId','mapNumber', 'position', 'time']]
-finalData = finalData.reset_index()
-finalData = pd.DataFrame(convert_to_final_form(finalData, outdic))
-print(finalData)
+for team in teamList:
+    finalData = find_times_for_team(liveToken, standardToken, team['players'])
+    print(finalData)
