@@ -3,6 +3,44 @@ import numpy as np
 import requests
 import json
 import openpyxl
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
+def main():
+    f = open('teams.json')
+    teams = json.load(f)
+
+    teamList = [
+            {
+                "team": "Atlas Lions",
+                "players" : {
+                    "391f1aeb-744f-4c8c-8ce3-dcd53cfbf883" : "JajaTM",
+                    "dc203ffc-bab7-4971-bfb3-dec83db1fa4e" : "Br0wski7",
+                    "f16aba06-1952-45ab-866c-775c0f45d93a" : "MarsoTM",
+                    "3a88d4bc-a2a5-4b38-9fd6-f05c02ef159a" : "BENOXy",
+                    "9e51ee71-ac8e-498d-91fe-7534c5acf5f4" : "le_usf"
+                }
+            },
+            {
+            "team": "Austria's Bench Team YEP",
+            "players" : {
+                "711036bf-d90b-4fa4-9be5-964eb3912256" : "Mariina.",
+                "b52cc9c4-4e4f-48ce-ace6-b4a6ced9bfc3" : "ParZival_TM",
+                "5cafc8ea-9a29-4687-9101-71397643190b" : "DMR-GameBros",
+                "c465dbfc-d145-4944-bc06-f61106323040" : "Domi_TM",
+                "08e60593-f088-4d50-9a98-6945643fea50" : "Dave_it_Google"
+                }
+            }
+        ]
+    liveToken = get_live_token()
+    standardToken = get_standard_token()
+
+    writer = pd.ExcelWriter('TeamTime.xlsx', engine = 'xlsxwriter')
+
+    produce_excel_file(liveToken, standardToken, writer, teamList)
+
+    writer.save()
+
 
 def get_standard_token():
     Header = {
@@ -84,25 +122,19 @@ def replace_map_id_with_uid(mapIDs, mapInfo):
                     mapNumber.append(mapInfo['mapNumber'][i])
     return uids, mapNumber
 
-def convert_to_final_form(data: pd.DataFrame, outdic):
+def convert_to_final_form(data: pd.DataFrame, outdic, playerList):
+    data.to_clipboard()
     for index, row in data.iterrows():
         playernumber = str(int((index / 20) + 1))
         if playernumber == '1':
             outdic['mapNumber'].append(row['mapNumber'])
+        name = playerList[row['accountId']]
         if index % 20 == 0:
-            outdic[playernumber+'position'] = []
-            outdic[playernumber+'time'] = []
-        outdic[playernumber+'position'].append(row['position'])
-        outdic[playernumber+'time'].append(row['time'])
+            outdic[f'{name} position'] = []
+            outdic[f'{name} time'] = []
+        outdic[f'{name} position'].append(row['position'])
+        outdic[f'{name} time'].append(row['time'])
     return outdic
-
-def insert_names(data: pd.DataFrame, playerList):
-    names = list(playerList.values())
-    for i in range(0, len(names)):
-        data.rename(columns={f"{str(i+1)}position":f"{names[i]} position"}, inplace=True)
-        data.rename(columns={f"{str(i+1)}time":f"{names[i]} time"}, inplace=True)
-    return data
-
 
 def get_map_info():
     mapFrame = pd.read_csv('mapIDs.csv')
@@ -110,73 +142,105 @@ def get_map_info():
     mapInfo = mapFrame.to_dict()
     return mapInfo
 
-def get_times_and_uid( standardToken, mapInfo, playerList):
-    times = get_times(playerList, mapInfo, standardToken)
-    df = pd.DataFrame(times)
-    df['mapUid'], df['mapNumber'] = replace_map_id_with_uid(df['mapId'], mapInfo)
-
-    df['time'] = [d.get('time') for d in df['recordScore']]
-    data = df[['accountId', 'mapId', 'mapUid', 'time', 'mapNumber']]
-    return data
-
-def get_positions(liveToken, data):
-    outdic = {
-    'mapNumber': []
-    }
-    data['position'] = get_position_from_time(liveToken, data)
-    data = data.sort_values(['accountId', 'mapNumber'])
-    finalData = data[['accountId','mapNumber', 'position', 'time']]
-    finalData = finalData.reset_index()
-    finalData = pd.DataFrame(convert_to_final_form(finalData, outdic))
-    return finalData
-
-def find_times_for_team(liveToken, standardToken, playerList):
-    mapInfo = get_map_info()
-    data = get_times_and_uid(standardToken, mapInfo, playerList)
-    finalData = get_positions(liveToken, data)
-    finalData = insert_names(finalData, playerList)
-    return finalData
-
 def convert_milliseconds(input):
     milliseconds = int((int(input)%1000))
     seconds = int((int(input)/1000)%60)
     minutes = int((int(input)/(1000*60))%60)
 
+    milliseconds = '00' + str(milliseconds) if milliseconds < 10 else '0' + str(milliseconds) if milliseconds < 100 else str(milliseconds)
     seconds = '0'+str(seconds) if seconds < 10 else str(seconds)
     minutes = '0'+str(minutes) if minutes < 10 else str(minutes)
 
     returnstring = f'{minutes}:{seconds}.{milliseconds}' if int(minutes) > 0 else F'{seconds}.{milliseconds}'
     return returnstring
 
-teamList = [
-    {
-        "team": "italy",
-        "players" : {
-            "3288d084-1aab-41af-99e6-f6e2367dcfc8" : "johanclanTM",
-            "55a6453a-8fd8-47da-831b-d4c90ecc7506" : "DexteR.771"
-        }
-    },
-    {
-        "team": "denmark",
-        "players" : {
-            "794a286c-44d9-4276-83ce-431cba7bab74" : "Marius",
-            "fb678553-f730-442a-a035-dfc50f4a5b7b" : "Mime"
-        }
+def convert_to_readable_time(times):
+    array = []
+    for time in times:
+        array.append(convert_milliseconds(time))
+    return array
+
+def check_and_fill_empty_maps(playerTimes: pd.DataFrame, playerList):
+    for accountID in playerList.keys():
+        accountIDTimes = playerTimes[playerTimes['accountId'] == accountID]
+        if accountIDTimes.shape[0] < 20:
+            for i in range(5,26):
+                if i not in accountIDTimes['mapNumber'].tolist():
+                    if i != 17:
+                        playerTimes = playerTimes.append({
+                            'accountId': accountID,
+                            'mapNumber': i,
+                            'position': 999999,
+                            'time': 660000
+                        }, ignore_index=True)
+    playerTimes.to_clipboard()
+    return playerTimes
+
+
+def get_times_and_uid(standardToken, mapInfo, playerList):
+    times = get_times(playerList, mapInfo, standardToken)
+    df = pd.DataFrame(times)
+    df['mapUid'], df['mapNumber'] = replace_map_id_with_uid(df['mapId'], mapInfo)
+    df['time'] = [d.get('time') for d in df['recordScore']]
+    data = df[['accountId', 'mapId', 'mapUid', 'time', 'mapNumber']]
+    return data
+
+def get_positions(liveToken, data, playerList):
+    outdic = {
+    'mapNumber': []
     }
-]
+    data['position'] = get_position_from_time(liveToken, data)
+    data.to_clipboard()
+    data = data[['accountId','mapNumber', 'position', 'time']]
+    data = check_and_fill_empty_maps(data, playerList)
+    data = data.sort_values(['accountId', 'mapNumber'])
+    data = data.reset_index()
+    data['time'] = convert_to_readable_time(data['time'])
+    data = pd.DataFrame(convert_to_final_form(data, outdic, playerList))
+    return data
 
-liveToken = get_live_token()
-standardToken = get_standard_token()
+def find_times_for_team(liveToken, standardToken, playerList):
+    mapInfo = get_map_info()
+    data = get_times_and_uid(standardToken, mapInfo, playerList)
+    finalData = get_positions(liveToken, data, playerList)
+    return finalData
 
-writer = pd.ExcelWriter('TeamTime.xlsx', engine = 'xlsxwriter')
+def produce_excel_file(liveToken, standardToken, writer, teamList):
+    for team in teamList:
+        TopThreeAverages = []
+        finalData = find_times_for_team(liveToken, standardToken, team['players'])
+        TopThreeAverages = get_top_three_averages(finalData)
+        finalData['Top Three Average'] = TopThreeAverages
+        finalData.to_excel(writer, sheet_name=team['team'], index=False)
+        print(team['team'])
+        print(finalData)
+        adjust_column_width(writer, team['team'], finalData)
+    return finalData
 
+def adjust_column_width(writer, teamName, finalData):
+    worksheet = writer.sheets[teamName]  # pull worksheet object
+    for idx, col in enumerate(finalData):  # loop through all columns
+        series = finalData[col]
+        max_len = max((
+        series.astype(str).map(len).max(),  # len of largest item
+        len(str(series.name))  # len of column name/header
+        )) + 3  # adding a little extra space
+        worksheet.set_column(idx, idx, max_len)
 
+def Average(lst):
+    return sum(lst) / len(lst)
 
-for team in teamList:
-    finalData = find_times_for_team(liveToken, standardToken, team['players'])
-    finalData['time'].map()
-    finalData.to_excel(writer, sheet_name=team['team'], index=False)
-    #finalData.to_excel('TeamTime.xlsx', sheet_name=team['team'])
-    print(finalData)
-writer.save()
-writer.close()
+def get_top_three_averages(data):
+    averages = []
+    for i in range(5,26):
+        if i != 17:
+            positionsCol = data[data['mapNumber'] == i].filter(regex='position')
+            positions = positionsCol.values.flatten().tolist()
+            positions.sort()
+            top_three = positions[:3]
+            mapAverages = Average(top_three)
+            averages.append(int(mapAverages))
+    return averages
+            
+if __name__ == "__main__":
+    main()

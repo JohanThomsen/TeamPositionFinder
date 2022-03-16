@@ -1,10 +1,24 @@
-def convert_milliseconds(input):
-    milliseconds = int((int(input)%1000))
-    seconds = int((int(input)/1000)%60)
-    minutes = int((int(input)/(1000*60))%60)
+import json
 
-    seconds = '0'+str(seconds) if seconds < 10 else str(seconds)
-    minutes = '0'+str(minutes) if minutes < 10 else str(minutes)
+teamList = [
+    {
+        "team": "italy",
+        "players" : {
+            "3288d084-1aab-41af-99e6-f6e2367dcfc8" : "johanclanTM",
+            "55a6453a-8fd8-47da-831b-d4c90ecc7506" : "DexteR.771",
+            "72e51fa6-3d98-45fd-93fa-7bb681625476" : "Dantski"
+        }
+    },
+    {
+        "team": "denmark",
+        "players" : {
+            "794a286c-44d9-4276-83ce-431cba7bab74" : "Marius",
+            "fb678553-f730-442a-a035-dfc50f4a5b7b" : "Mime"
+        }
+    }
+]
 
-    returnstring = f'{minutes}:{seconds}.{milliseconds}' if int(minutes) > 0 else F'{seconds}.{milliseconds}'
-    return returnstring
+f = open('teams.json')
+teams = json.load(f)
+print(teams[0])
+print(teamList[0])
