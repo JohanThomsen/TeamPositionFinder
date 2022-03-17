@@ -44,6 +44,7 @@ def main():
 
 def get_standard_token():
     Header = {
+    'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
     'Accept': 'application/json',
     'Content-Type': 'application/json',
     'Authorization': 'Basic am9oYW5jbGFuc2VydmVyOngvW0JNR1coNnckW0YlTmA='
@@ -55,6 +56,7 @@ def get_standard_token():
 
 def get_live_token():
     Header = {
+    'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
     'Accept': 'application/json',
     'Content-Type': 'application/json',
     'Authorization': 'Basic am9oYW5jbGFuc2VydmVyOngvW0JNR1coNnckW0YlTmA='
@@ -83,6 +85,7 @@ def getPlayerString(playerList):
 
 def get_times(playerList, mapInfo, token):
     Header = {
+    'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
     'Accept': 'application/json',
     'Content-Type': 'application/json',
     'Authorization': f'nadeo_v1 t={token}'
@@ -97,6 +100,7 @@ def get_times(playerList, mapInfo, token):
 def get_position_from_time(token, data):
     positions = []
     Header = {
+    'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
     'Accept': 'application/json',
     'Content-Type': 'application/json',
     'Authorization': f'nadeo_v1 t={token}'
