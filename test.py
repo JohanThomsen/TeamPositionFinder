@@ -37,7 +37,7 @@ def main():
 
     writer = pd.ExcelWriter('TeamTime.xlsx', engine = 'xlsxwriter')
 
-    produce_excel_file(liveToken, standardToken, writer, teamList)
+    produce_excel_file(liveToken, standardToken, writer, teams)
 
     writer.save()
 
@@ -127,7 +127,6 @@ def replace_map_id_with_uid(mapIDs, mapInfo):
     return uids, mapNumber
 
 def convert_to_final_form(data: pd.DataFrame, outdic, playerList):
-    data.to_clipboard()
     for index, row in data.iterrows():
         playernumber = str(int((index / 20) + 1))
         if playernumber == '1':
@@ -177,7 +176,6 @@ def check_and_fill_empty_maps(playerTimes: pd.DataFrame, playerList):
                             'position': 999999,
                             'time': 660000
                         }, ignore_index=True)
-    playerTimes.to_clipboard()
     return playerTimes
 
 
@@ -194,7 +192,6 @@ def get_positions(liveToken, data, playerList):
     'mapNumber': []
     }
     data['position'] = get_position_from_time(liveToken, data)
-    data.to_clipboard()
     data = data[['accountId','mapNumber', 'position', 'time']]
     data = check_and_fill_empty_maps(data, playerList)
     data = data.sort_values(['accountId', 'mapNumber'])
