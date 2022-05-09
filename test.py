@@ -7,7 +7,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def main():
-    f = open('teams.json')
+    f = open('PlayoffTeams.json')
     teams = json.load(f)
 
     teamList = [
@@ -44,10 +44,10 @@ def main():
 
 def get_standard_token():
     Header = {
-    'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'Authorization': 'Basic am9oYW5jbGFuc2VydmVyOngvW0JNR1coNnckW0YlTmA='
+        'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic am9oYW5jbGFuc2VydmVyOngvW0JNR1coNnckW0YlTmA='
     }
     url = 'https://prod.trackmania.core.nadeo.online/v2/authentication/token/basic?'
     r =requests.post(url, headers=Header)
@@ -56,10 +56,10 @@ def get_standard_token():
 
 def get_live_token():
     Header = {
-    'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'Authorization': 'Basic am9oYW5jbGFuc2VydmVyOngvW0JNR1coNnckW0YlTmA='
+        'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic am9oYW5jbGFuc2VydmVyOngvW0JNR1coNnckW0YlTmA='
     }
     url = 'https://prod.trackmania.core.nadeo.online/v2/authentication/token/basic?'
     r =requests.post(url, json={'audience': 'NadeoLiveServices'}, headers=Header)
@@ -85,10 +85,10 @@ def getPlayerString(playerList):
 
 def get_times(playerList, mapInfo, token):
     Header = {
-    'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'Authorization': f'nadeo_v1 t={token}'
+        'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': f'nadeo_v1 t={token}'
     }
     mapString = getMapString(mapInfo)
     playerString = getPlayerString(playerList)
@@ -100,10 +100,10 @@ def get_times(playerList, mapInfo, token):
 def get_position_from_time(token, data):
     positions = []
     Header = {
-    'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'Authorization': f'nadeo_v1 t={token}'
+        'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': f'nadeo_v1 t={token}'
     }
     for index, row in data.iterrows():
         mapUid = row['mapUid']
