@@ -5,6 +5,7 @@ import json
 import openpyxl
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
+encodedAuthString = 'ENCODEDAUTHSTRING' 
 
 def main():
     f = open('PlayoffTeams.json')
@@ -47,7 +48,7 @@ def get_standard_token():
         'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': 'Basic am9oYW5jbGFuc2VydmVyOngvW0JNR1coNnckW0YlTmA='
+        'Authorization': 'Basic ' + encodedAuthString
     }
     url = 'https://prod.trackmania.core.nadeo.online/v2/authentication/token/basic?'
     r =requests.post(url, headers=Header)
@@ -59,7 +60,7 @@ def get_live_token():
         'User-Agent': '<TSCC Team Position Finder> / <1.0> <Tool used to find times and positions for all players in the TSCC tournament If this usage is an issue my discord is: JohanClan#1234>',
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': 'Basic am9oYW5jbGFuc2VydmVyOngvW0JNR1coNnckW0YlTmA='
+        'Authorization': 'Basic ' + encodedAuthString
     }
     url = 'https://prod.trackmania.core.nadeo.online/v2/authentication/token/basic?'
     r =requests.post(url, json={'audience': 'NadeoLiveServices'}, headers=Header)

@@ -3,19 +3,19 @@ import numpy as np
 import requests
 import json
 
-url = 'https://trackmania.io/api/officialcampaign/18729'
+url = 'https://trackmania.io/api/officialcampaign/22874'
 userAgentHeader = {
-    'User-Agent': 'TSCCTeamPositionFinder/0.1',
+    'User-Agent': 'TSCCTeamPositionFinder/1.0',
     'Authorization': 'Trackmania.io F32_D4On2ui0b0dgw2ydL6hTID11p_eie83wfmptC07DtUMjmpgxAlWczLOaK5Bc'
 }
-#r =requests.get(url, headers=userAgentHeader)
+r =requests.get(url, headers=userAgentHeader)
 jsonResponse = json.loads(r.content)
 
 mapids = {
     'ids': [],
     'uids': []
 }
-mapids['ids'].append('cd7facc2-3cee-45cf-b7c6-816da8e99db4')
+mapids['ids'].append('FillerToGetMapNamesToMatchWowNamexdd')
 mapids['uids'].append('')
 for track in jsonResponse['playlist']:
     print(track['mapId'] + track['mapUid'])
