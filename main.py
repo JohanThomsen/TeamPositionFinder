@@ -5,10 +5,13 @@ import json
 import openpyxl
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-encodedAuthString = 'ENCODEDAUTHSTRING' 
+encodedAuthString = 'YourServerLoginBase64EncodingHere'
+STARTMAP = 6
+ENDMAP = 25
+MAPAMOUNT = ENDMAP - STARTMAP + 1
 
 def main():
-    f = open('PlayoffTeams.json')
+    f = open('teams.json')
     teams = json.load(f)
 
     teamList = [
@@ -69,11 +72,10 @@ def get_live_token():
 
 def getMapString(mapInfo):
     string = ''
-    for i in range(5,26):
-        if i != 17:
-            string += mapInfo['mapId'][i]
-            if i != 25:
-                string += '%2c'
+    for i in range(STARTMAP,ENDMAP + 1):
+        string += mapInfo['mapId'][i]
+        if i != ENDMAP:
+            string += '%2c'
     return string
 
 def getPlayerString(playerList):
@@ -119,21 +121,20 @@ def replace_map_id_with_uid(mapIDs, mapInfo):
     uids = []
     mapNumber = []
     for mapID in mapIDs:
-        for i in range(5,26):
-            if i != 17:
-                Id = mapInfo['mapId'][i]
-                if mapID == Id:
-                    uids.append(mapInfo['mapUid'][i])
-                    mapNumber.append(mapInfo['mapNumber'][i])
+        for i in range(STARTMAP,ENDMAP + 1):
+            Id = mapInfo['mapId'][i]
+            if mapID == Id:
+                uids.append(mapInfo['mapUid'][i])
+                mapNumber.append(mapInfo['mapNumber'][i])
     return uids, mapNumber
 
 def convert_to_final_form(data: pd.DataFrame, outdic, playerList):
     for index, row in data.iterrows():
-        playernumber = str(int((index / 20) + 1))
+        playernumber = str(int((index / MAPAMOUNT) + 1))
         if playernumber == '1':
             outdic['mapNumber'].append(row['mapNumber'])
         name = playerList[row['accountId']]
-        if index % 20 == 0:
+        if index % MAPAMOUNT == 0:
             outdic[f'{name} position'] = []
             outdic[f'{name} time'] = []
         outdic[f'{name} position'].append(row['position'])
@@ -168,15 +169,14 @@ def check_and_fill_empty_maps(playerTimes: pd.DataFrame, playerList):
     for accountID in playerList.keys():
         accountIDTimes = playerTimes[playerTimes['accountId'] == accountID]
         if accountIDTimes.shape[0] < 20:
-            for i in range(5,26):
+            for i in range(STARTMAP,ENDMAP + 1):
                 if i not in accountIDTimes['mapNumber'].tolist():
-                    if i != 17:
-                        playerTimes = playerTimes.append({
-                            'accountId': accountID,
-                            'mapNumber': i,
-                            'position': 999999,
-                            'time': 660000
-                        }, ignore_index=True)
+                    playerTimes = playerTimes.append({
+                        'accountId': accountID,
+                        'mapNumber': i,
+                        'position': 999999,
+                        'time': 660000
+                    }, ignore_index=True)
     return playerTimes
 
 
@@ -234,14 +234,13 @@ def Average(lst):
 
 def get_top_three_averages(data):
     averages = []
-    for i in range(5,26):
-        if i != 17:
-            positionsCol = data[data['mapNumber'] == i].filter(regex='position')
-            positions = positionsCol.values.flatten().tolist()
-            positions.sort()
-            top_three = positions[:3]
-            mapAverages = Average(top_three)
-            averages.append(int(mapAverages))
+    for i in range(STARTMAP,ENDMAP + 1):
+        positionsCol = data[data['mapNumber'] == i].filter(regex='position')
+        positions = positionsCol.values.flatten().tolist()
+        positions.sort()
+        top_three = positions[:3]
+        mapAverages = Average(top_three)
+        averages.append(int(mapAverages))
     return averages
             
 if __name__ == "__main__":
