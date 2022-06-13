@@ -41,7 +41,7 @@ def main():
 
     writer = pd.ExcelWriter('TeamTime.xlsx', engine = 'xlsxwriter')
 
-    produce_excel_file(liveToken, standardToken, writer, teams)
+    produce_excel_file(liveToken, standardToken, writer, teamList)
 
     writer.save()
 
