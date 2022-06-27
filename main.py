@@ -5,13 +5,13 @@ import json
 import openpyxl
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-encodedAuthString = 'YourServerLoginBase64EncodingHere'
+encodedAuthString = 'YOURSERVERLOGINENCODEDHERE'
 STARTMAP = 6
 ENDMAP = 25
 MAPAMOUNT = ENDMAP - STARTMAP + 1
 
 def main():
-    f = open('teams.json')
+    f = open('PlayoffTeams.json')
     teams = json.load(f)
 
     teamList = [
@@ -41,7 +41,7 @@ def main():
 
     writer = pd.ExcelWriter('TeamTime.xlsx', engine = 'xlsxwriter')
 
-    produce_excel_file(liveToken, standardToken, writer, teamList)
+    produce_excel_file(liveToken, standardToken, writer, teams)
 
     writer.save()
 
